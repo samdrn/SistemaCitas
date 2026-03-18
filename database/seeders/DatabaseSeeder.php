@@ -9,14 +9,27 @@ use App\Models\Appointment;
 use App\Models\AppointmentResult;
 use App\Models\DoctorSchedule;
 use Carbon\Carbon;
+use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+
+        $this->call(PermissionSeeder::class);
+
         // Crear datos base
-        $doctors = Doctor::factory()->count(20)->create();
         $patients = Patient::factory()->count(30)->create();
+
+        $medicos = User::role('medico')->get();
+
+        $doctors = $medicos->map(function ($user) {
+            return Doctor::factory()->create([
+                'user_id' => $user->id,
+            ]);
+        });
+
+
 
         // DÍAS EN ESPAÑOL
         $days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];

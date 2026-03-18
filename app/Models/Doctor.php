@@ -14,7 +14,12 @@ class Doctor extends Model
         'last_name',
         'email',
         'phone',
+        'user_id',
     ];
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 
     public function appointments()
     {
