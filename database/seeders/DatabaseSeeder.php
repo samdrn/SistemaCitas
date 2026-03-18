@@ -14,75 +14,66 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-
-        $doctors = Doctor::factory()->count(5)->create();
+        // Crear datos base
+        $doctors = Doctor::factory()->count(20)->create();
         $patients = Patient::factory()->count(30)->create();
 
+        // DÍAS EN ESPAÑOL
+        $days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
 
-        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-
-        $doctors->each(function ($doctor) use ($days) {
+        // Crear horarios
+        foreach ($doctors as $doctor) {
             foreach ($days as $day) {
-                DoctorSchedule::factory()->create([
+                DoctorSchedule::create([
                     'doctor_id' => $doctor->id,
                     'day' => $day,
                     'start_time' => '08:00:00',
                     'end_time' => '16:00:00',
                 ]);
             }
-        });
+        }
 
-
+        // Crear citas
         foreach ($doctors as $doctor) {
-            $schedules = DoctorSchedule::where('doctor_id', $doctor->id)->get();
 
-            foreach ($schedules as $schedule) {
+            $schedule = DoctorSchedule::where('doctor_id', $doctor->id)
+                ->where('day', 'viernes')
+                ->first();
 
+            if (!$schedule) continue;
 
-                $date = Carbon::now()->next($schedule->day);
+            $date = Carbon::parse('next friday');
 
-                $start = Carbon::parse($schedule->start_time);
-                $end = Carbon::parse($schedule->end_time);
+            $current = Carbon::parse($date->format('Y-m-d') . ' ' . $schedule->start_time);
+            $end = Carbon::parse($date->format('Y-m-d') . ' ' . $schedule->end_time);
 
-                $current = $date->copy()->setTimeFrom($start);
-                $patient;
+            while ($current < $end) {
 
-                for ($i = 0; $i < 5; $i++) {
-                    $patient = $patients->random();
+                $appointmentEnd = $current->copy()->addMinutes(30);
 
-                    $conflict = collect($patientBookings[$patient->id] ?? [])->contains(
-                        fn ($b) => $current < $b['end'] && $appointmentEnd > $b['start']
-                    );
+                if ($appointmentEnd > $end) break;
 
-                    if (!$conflict) {
-                        break;
-                    }
-}
+                $patient = $patients->random();
 
-                while ($current->lt($date->copy()->setTimeFrom($end))) {
+                $exists = Appointment::where('doctor_id', $doctor->id)
+                    ->where('start_time', $current)
+                    ->exists();
 
-                    $duration = rand(30, 60);
-                    $appointmentEnd = $current->copy()->addMinutes($duration);
-
-                    if ($appointmentEnd->gt($date->copy()->setTimeFrom($end))) {
-                        break;
-                    }
-
+                if (!$exists) {
                     $appointment = Appointment::create([
                         'doctor_id' => $doctor->id,
                         'patient_id' => $patient->id,
-                        'start_time' => $current->copy(),
-                        'end_time' => $appointmentEnd->copy(),
+                        'start_time' => $current,
+                        'end_time' => $appointmentEnd,
                     ]);
-
 
                     AppointmentResult::factory()->create([
                         'patient_id' => $appointment->patient_id,
                         'appointment_id' => $appointment->id,
                     ]);
-
-                    $current = $appointmentEnd;
                 }
+
+                $current->addMinutes(30);
             }
         }
     }

@@ -21,7 +21,7 @@ return [
     'patient_id' => \App\Models\Patient::factory(),
     'appointment_id' => \App\Models\Appointment::factory(),
     'diagnostic' => $this->faker->paragraph(),
-    'perscription' => $this->faker->paragraph(),
+    'prescription' => $this->faker->paragraph(),
 ];
     }
 }

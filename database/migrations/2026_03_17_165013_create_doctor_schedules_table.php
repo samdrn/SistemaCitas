@@ -6,25 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('doctor_schedules', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->unsignedBigInteger("doctor_id");
-            $table->string("day");
-            $table->time("start_time");
-            $table->time("end_time");
-            $table->foreign("doctor_id")->references("id")->on("doctors");
+
+            $table->foreignId('doctor_id')->constrained()->cascadeOnDelete();
+
+            $table->string('day');
+            $table->time('start_time'); 
+            $table->time('end_time');
+               
+            $table->index(['doctor_id', 'start_time']);
+            $table->index(['doctor_id', 'end_time']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('doctor_schedules');

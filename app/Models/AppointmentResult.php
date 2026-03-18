@@ -13,7 +13,7 @@ class AppointmentResult extends Model
         'patient_id',
         'appointment_id',
         'diagnostic',
-        'perscription',
+        'prescription',
     ];
 
     public function patient()
