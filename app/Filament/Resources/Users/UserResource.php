@@ -47,13 +47,19 @@ class UserResource extends Resource
         ];
     }
 
+    /*
     public static function canViewAny(): bool
     {
-        return Auth::check() && Auth::user()->hasRole('admin');
+        return Auth::check() && Auth::user()->can('view any', User::class);
     }
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canViewAny();
+        return Auth::check() && Auth::user()->can('view any', User::class);
     }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::check() && Auth::user()->hasRole('admin');
+    }*/
 }

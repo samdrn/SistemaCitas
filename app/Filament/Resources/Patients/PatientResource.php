@@ -47,13 +47,19 @@ class PatientResource extends Resource
         ];
     }
 
+    /*
     public static function canViewAny(): bool
     {
-        return Auth::check() && Auth::user()->hasRole(['admin', 'asistente']);
+        return Auth::check() && Auth::user()->can('view any', Patient::class);
     }
 
     public static function shouldRegisterNavigation(): bool
     {
         return static::canViewAny();
     }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::check() && Auth::user()->hasRole(['admin', 'asistente']);
+    }*/
 }

@@ -13,6 +13,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class AppointmentResource extends Resource
@@ -47,13 +49,37 @@ class AppointmentResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        if ($user->hasRole('medico')) {
+            return $query->whereHas('doctor', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        return $query;
+    }
+
+
+    
+    /*
     public static function canViewAny(): bool
     {
-        return Auth::check() && Auth::user()->hasRole(['admin', 'medico', 'asistente']);
+        return Auth::check() && Auth::user()->can('view any', Appointment::class);
+    }
+
+    /*public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canViewAny();
+        return Auth::check() && Auth::user()->hasRole(['admin', 'asistente', 'medico']);
     }
+    */
 }
