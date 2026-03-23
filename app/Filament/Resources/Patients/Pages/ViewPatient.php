@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Filament\Resources\Patients\Pages;
+
+use App\Filament\Resources\Patients\PatientResource;
+use Filament\Actions;
+use Filament\Resources\Pages\ViewRecord;
+
+class ViewPatient extends ViewRecord
+{
+    protected static string $resource = PatientResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\EditAction::make()
+                ->hidden(fn () => auth()->user()->hasRole('Asistente')),
+        ];
+    }
+}
