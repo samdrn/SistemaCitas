@@ -4,9 +4,14 @@ namespace App\Filament\Resources\Patients;
 
 use App\Filament\Resources\Patients\Pages;
 use App\Models\Patient;
-use Filament\Forms;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Schemas\Schema;
-use Filament\Infolists;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -23,22 +28,22 @@ class PatientResource extends Resource
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Datos Personales')
+                Section::make('Datos Personales')
                     ->description('Información básica del paciente.')
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label('Nombres')
                             ->required(),
-                        Forms\Components\TextInput::make('last_name')
+                        TextInput::make('last_name')
                             ->label('Apellidos')
                             ->required(),
-                        Forms\Components\DatePicker::make('birth_date')
+                        DatePicker::make('birth_date')
                             ->label('Fecha de Nacimiento')
                             ->required(),
-                        Forms\Components\TextInput::make('phone')
+                        TextInput::make('phone')
                             ->label('Teléfono')
                             ->tel(),
-                        Forms\Components\TextInput::make('email')
+                        TextInput::make('email')
                             ->label('Correo Electrónico')
                             ->email(),
                     ])->columns(2),
@@ -49,38 +54,35 @@ class PatientResource extends Resource
     {
         return $schema
             ->components([
-                Infolists\Components\Grid::make(2)
+                Grid::make(2)
                     ->schema([
-                        Infolists\Components\Group::make([
-                            Infolists\Components\Section::make('Información del Paciente')
+                        Group::make([
+                            Section::make('Información del Paciente')
                                 ->schema([
-                                    Infolists\Components\TextEntry::make('name')->label('Nombres')->weight('bold'),
-                                    Infolists\Components\TextEntry::make('last_name')->label('Apellidos')->weight('bold'),
-                                    Infolists\Components\TextEntry::make('birth_date')->label('Fecha Nacimiento')->date(),
-                                    Infolists\Components\TextEntry::make('phone')->label('Teléfono')->copyable(),
-                                    Infolists\Components\TextEntry::make('email')->label('Email')->icon('heroicon-m-envelope'),
+                                    TextEntry::make('name')->label('Nombres')->weight('bold'),
+                                    TextEntry::make('last_name')->label('Apellidos')->weight('bold'),
+                                    TextEntry::make('birth_date')->label('Fecha Nacimiento')->date(),
+                                    TextEntry::make('phone')->label('Teléfono')->copyable(),
+                                    TextEntry::make('email')->label('Email')->icon('heroicon-m-envelope'),
                                 ])->columns(2),
                         ]),
-                        Infolists\Components\Group::make([
-                            Infolists\Components\Section::make('Expediente Clínico (Historial)')
+                        Group::make([
+                            Section::make('Expediente Clínico (Historial)')
                                 ->description('Últimos diagnósticos y recetas.')
                                 ->schema([
-                                    // Mostramos una lista de resultados de citas
-                                    Infolists\Components\RepeatableEntry::make('medicalRecords')
+                                    RepeatableEntry::make('medicalRecords')
                                         ->label('Resultados de Consultas')
                                         ->schema([
-                                            Infolists\Components\TextEntry::make('created_at')
+                                            TextEntry::make('created_at')
                                                 ->label('Fecha')
                                                 ->dateTime()
                                                 ->color('info'),
-                                            Infolists\Components\TextEntry::make('diagnostic')
+                                            TextEntry::make('diagnostic')
                                                 ->label('Diagnóstico')
                                                 ->markdown(),
-                                            Infolists\Components\TextEntry::make('prescription')
+                                            TextEntry::make('prescription')
                                                 ->label('Receta Medica'),
-                                        ])
-                                        ->limit(5)
-                                        ->emptyStateHeading('No hay historial registrado aún.'),
+                                        ]),
                                 ]),
                         ]),
                     ]),
@@ -101,16 +103,13 @@ class PatientResource extends Resource
                     ->label('Teléfono'),
                 Tables\Columns\TextColumn::make('birth_date')
                     ->label('Edad')
-                    ->since()
+                    ->getStateUsing(fn ($record) => \Carbon\Carbon::parse($record->birth_date)->age . ' años')
                     ->sortable(),
             ])
             ->actions([
                 \Filament\Actions\ViewAction::make(),
-                // REGLA: El Asistente puede registrar pero NO editar expediente (aquí editamos al paciente)
-                // Se oculta la edición para Asistentes si queremos restringirlos totalmente:
                 \Filament\Actions\EditAction::make()
                     ->hidden(fn () => auth()->user()->hasRole('Asistente')),
-                // REGLA: El Medico no puede eliminar pacientes
                 \Filament\Actions\DeleteAction::make()
                     ->hidden(fn () => auth()->user()->hasRole('Medico')),
             ])

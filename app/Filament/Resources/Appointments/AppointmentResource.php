@@ -5,7 +5,9 @@ namespace App\Filament\Resources\Appointments;
 use App\Filament\Resources\Appointments\Pages;
 use App\Models\Appointment;
 use App\Models\Doctor;
-use Filament\Forms;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -20,13 +22,11 @@ class AppointmentResource extends Resource
 
     protected static string | \UnitEnum | null $navigationGroup = 'Gestión Clínica';
 
-    // REGLA: Scope dinámico según rol
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
 
         if (auth()->user()->hasRole('Medico')) {
-            // El usuario autenticado tiene una relación hasOne con Doctor
             $doctorId = auth()->user()->doctor?->id;
             return $query->where('doctor_id', $doctorId);
         }
@@ -38,30 +38,29 @@ class AppointmentResource extends Resource
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Detalles de la Cita')
+                Section::make('Detalles de la Cita')
                     ->schema([
-                        Forms\Components\Select::make('patient_id')
+                        Select::make('patient_id')
                             ->label('Paciente')
                             ->relationship('patient', 'name')
                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} {$record->last_name}")
                             ->searchable()
                             ->preload()
                             ->required(),
-                        Forms\Components\Select::make('doctor_id')
+                        Select::make('doctor_id')
                             ->label('Médico Tratante')
                             ->relationship('doctor', 'name')
                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} {$record->last_name}")
                             ->searchable()
                             ->required()
-                            // Si es médico, fijamos el valor a su propio ID
                             ->default(fn () => auth()->user()->doctor?->id)
                             ->disabled(fn () => auth()->user()->hasRole('Medico'))
                             ->dehydrated(),
-                        Forms\Components\DateTimePicker::make('start_time')
+                        DateTimePicker::make('start_time')
                             ->label('Inicio de Cita')
                             ->required()
                             ->native(false),
-                        Forms\Components\DateTimePicker::make('end_time')
+                        DateTimePicker::make('end_time')
                             ->label('Fin de Cita')
                             ->required()
                             ->native(false),
@@ -85,13 +84,13 @@ class AppointmentResource extends Resource
                     ->label('Médico')
                     ->formatStateUsing(fn ($record) => "{$record->doctor->name} {$record->doctor->last_name}")
                     ->visible(fn () => !auth()->user()->hasRole('Medico')),
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
+                    ->badge()
                     ->getStateUsing(fn ($record) => now()->gt($record->end_time) ? 'Finalizada' : 'Pendiente')
                     ->color(fn ($state) => $state === 'Finalizada' ? 'gray' : 'success'),
             ])
             ->filters([
-                // REGLA: Filtro por Médico para Asistentes y Admin
                 Tables\Filters\SelectFilter::make('doctor_id')
                     ->label('Filtrar por Médico')
                     ->options(Doctor::all()->pluck('name', 'id'))
@@ -99,7 +98,6 @@ class AppointmentResource extends Resource
             ])
             ->actions([
                 \Filament\Actions\EditAction::make(),
-                // REGLA: Médicos no pueden eliminar citas
                 \Filament\Actions\DeleteAction::make()
                     ->hidden(fn () => auth()->user()->hasRole('Medico')),
             ])

@@ -4,7 +4,9 @@ namespace App\Filament\Resources\Users;
 
 use App\Filament\Resources\Users\Pages;
 use App\Models\User;
-use Filament\Forms;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -19,7 +21,6 @@ class UserResource extends Resource
 
     protected static string | \UnitEnum | null $navigationGroup = 'Administración';
 
-
     public static function canAccess(): bool
     {
         return auth()->user()->hasRole('Admin');
@@ -29,25 +30,25 @@ class UserResource extends Resource
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Detalles del Usuario')
+                Section::make('Detalles del Usuario')
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label('Nombre Completo')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('email')
+                        TextInput::make('email')
                             ->label('Correo Electrónico')
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true),
-                        Forms\Components\TextInput::make('password')
+                        TextInput::make('password')
                             ->label('Contraseña')
                             ->password()
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                             ->required(fn (string $context): bool => $context === 'create')
                             ->dehydrated(fn ($state) => filled($state))
                             ->revealable(),
-                        Forms\Components\Select::make('roles')
+                        Select::make('roles')
                             ->label('Asignar Roles')
                             ->relationship('roles', 'name')
                             ->multiple()
