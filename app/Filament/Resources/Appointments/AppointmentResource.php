@@ -26,7 +26,7 @@ class AppointmentResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        if (auth()->user()->hasRole('Medico')) {
+        if (auth()->user()->hasRole('medico')) {
             $doctorId = auth()->user()->doctor?->id;
             return $query->where('doctor_id', $doctorId);
         }
@@ -54,7 +54,7 @@ class AppointmentResource extends Resource
                             ->searchable()
                             ->required()
                             ->default(fn () => auth()->user()->doctor?->id)
-                            ->disabled(fn () => auth()->user()->hasRole('Medico'))
+                            ->disabled(fn () => auth()->user()->hasRole('medico'))
                             ->dehydrated(),
                         DateTimePicker::make('start_time')
                             ->label('Inicio de Cita')
@@ -83,7 +83,7 @@ class AppointmentResource extends Resource
                 Tables\Columns\TextColumn::make('doctor.name')
                     ->label('Médico')
                     ->formatStateUsing(fn ($record) => "{$record->doctor->name} {$record->doctor->last_name}")
-                    ->visible(fn () => !auth()->user()->hasRole('Medico')),
+                    ->visible(fn () => !auth()->user()->hasRole('medico')),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
@@ -94,17 +94,17 @@ class AppointmentResource extends Resource
                 Tables\Filters\SelectFilter::make('doctor_id')
                     ->label('Filtrar por Médico')
                     ->options(Doctor::all()->pluck('name', 'id'))
-                    ->visible(fn () => auth()->user()->hasAnyRole(['Admin', 'Asistente'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'asistente'])),
             ])
             ->actions([
                 \Filament\Actions\EditAction::make(),
                 \Filament\Actions\DeleteAction::make()
-                    ->hidden(fn () => auth()->user()->hasRole('Medico')),
+                    ->hidden(fn () => auth()->user()->hasRole('medico')),
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make()
-                        ->hidden(fn () => auth()->user()->hasRole('Medico')),
+                        ->hidden(fn () => auth()->user()->hasRole('medico')),
                 ]),
             ]);
     }

@@ -23,7 +23,7 @@ class UserResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()->hasRole('Admin');
+        return auth()->user()->hasRole('admin');
     }
 
     public static function form(Schema $schema): Schema
@@ -73,9 +73,9 @@ class UserResource extends Resource
                     ->label('Roles')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'Admin' => 'danger',
-                        'Medico' => 'info',
-                        'Asistente' => 'success',
+                        'admin' => 'danger',
+                        'medico' => 'info',
+                        'asistente' => 'success',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('created_at')

@@ -109,14 +109,14 @@ class PatientResource extends Resource
             ->actions([
                 \Filament\Actions\ViewAction::make(),
                 \Filament\Actions\EditAction::make()
-                    ->hidden(fn () => auth()->user()->hasRole('Asistente')),
+                    ->hidden(fn () => auth()->user()->hasRole('asistente')),
                 \Filament\Actions\DeleteAction::make()
-                    ->hidden(fn () => auth()->user()->hasRole('Medico')),
+                    ->hidden(fn () => auth()->user()->hasRole('medico')),
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make()
-                        ->hidden(fn () => auth()->user()->hasRole('Medico')),
+                        ->hidden(fn () => auth()->user()->hasRole('medico')),
                 ]),
             ]);
     }
